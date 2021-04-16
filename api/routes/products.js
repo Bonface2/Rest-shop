@@ -10,7 +10,7 @@ router.get("/", (req, res, next) => {
       .exec()
       .then(docs => {
         const response = {
-            count: docs.length,
+            Total: docs.length,
             products: docs.map(doc =>{
                 return{
                     name: doc.name,
@@ -70,11 +70,19 @@ router.post("/",(req, res, next)=>{
 router.get("/:productId", (req, res, next)=> {
     const id = req.params.productId;
     Product.findById(id)
+    .select('name price id')
     .exec()
     .then(doc => {
         console.log(doc); 
         if(doc){
-            res.status(200).json(doc);
+            res.status(200).json({
+                product: doc,
+                request: {
+                    type: 'GET',
+                    description: 'Click the link below to get all products',
+                    url: 'http://localhost:3000/products/'
+                }
+            });
         }else{
             res.status(404).json({message: "Requested data not found"});
         }      
@@ -94,8 +102,14 @@ router.patch("/:productId", (req, res, next) => {
     Product.update({ _id: id }, { $set: updateOps })
       .exec()
       .then(result => {
-        console.log(result);
-        res.status(200).json(result);
+        res.status(200).json({
+            message: 'Product updated successfully',
+            request: {
+                type: 'GET',
+                description: 'Click below to view the new product',
+                url: 'http://localhost:3000/products/' + id
+            }
+        });
       })
       .catch(err => {
         console.log(err);
@@ -110,7 +124,12 @@ router.delete("/:productId", (req, res, next )=>{
     Product.remove({_id : id})
     .exec()
     .then(result =>{
-        res.status(200).json(result);
+        res.status(200).json({
+            message: "Product deleted successfully",
+            description: "Click below to view the remaining products",
+            type: "GET",
+            url: "http://localhost:3000/products"
+        });
     })
     .catch(err =>{
         console.log(err);
