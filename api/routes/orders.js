@@ -1,11 +1,35 @@
 const express = require ('express');
 const router = express.Router();
 const mongoose = require ('mongoose');
+const order = require('./models/order');
 const Order = require('./models/order');
 
 router.get('/', (req, res, next)=> {
-    res.status(200).json({
-        message: "Orders were fetched"
+    order.find()
+    .select('_id product quantity')
+    .exec()
+    .then(docs => {
+        res.status(200).json({
+            Total: docs.length,
+            Orders: docs.map(doc =>{
+                return{
+                    id : doc._id,
+                    product: doc.product,
+                    quantity: doc.quantity,
+                    request: {
+                        Type: 'GET',
+                        Url: 'http://localhost:3000/orders/'+ doc._id
+                    }
+                }
+            })
+
+        });
+    })
+    .catch(err =>{
+        console.log(err);
+        res.status(500).json({
+            error: err
+        });
     });
 });
 
